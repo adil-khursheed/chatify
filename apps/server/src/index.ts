@@ -1,13 +1,14 @@
 import dotenv from "dotenv";
 import { httpServer, socketService } from "./app.js";
 import connectDB from "./db/index.js";
+import conf from "./conf/conf.js";
 
 dotenv.config({
   path: "./env",
 });
 
 async function startServer() {
-  const PORT = process.env.PORT ? process.env.PORT : 5000;
+  const PORT = conf.serverPort ? conf.serverPort : 5000;
 
   httpServer.listen(PORT, () => {
     console.log(`HTTP server running on port ${PORT}`);
