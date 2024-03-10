@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SocketProvider } from "@/context/SocketProvider";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,18 +18,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <SocketProvider>
-        <body className={inter.className}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange>
-            {children}
-          </ThemeProvider>
-        </body>
-      </SocketProvider>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <SocketProvider>
+          <body className={inter.className}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange>
+              {children}
+            </ThemeProvider>
+          </body>
+        </SocketProvider>
+      </html>
+    </ClerkProvider>
   );
 }

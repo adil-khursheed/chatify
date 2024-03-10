@@ -5,6 +5,7 @@ const conf = {
   redisPort: Number(process.env.REDIS_PORT),
   redisUsername: String(process.env.REDIS_USERNAME),
   redisPassword: String(process.env.REDIS_PASSWORD),
+  webhookSecret: String(process.env.WEBHOOK_SECRET),
 };
 
 export default conf;

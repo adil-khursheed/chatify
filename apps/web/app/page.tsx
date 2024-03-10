@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/context/SocketProvider";
 import { useState } from "react";
+import { UserButton } from "@clerk/nextjs";
 
 const HomePage = () => {
   const [message, setMessage] = useState("");
@@ -15,6 +16,7 @@ const HomePage = () => {
   };
   return (
     <div className="max-w-5xl mx-auto p-5">
+      <UserButton />
       <div>
         <h1>All messages will appear here</h1>
         <div>
