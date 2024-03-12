@@ -21,9 +21,9 @@ class SocketService {
     console.log("Init Socket Server...");
 
     this._io = new Server({
+      pingTimeout: 60000,
       cors: {
-        allowedHeaders: ["*"],
-        origin: "*",
+        origin: conf.corsOrigin,
       },
     });
 
@@ -34,7 +34,7 @@ class SocketService {
     const io = this.io;
     console.log("Init socket listeners...");
 
-    io.on("connect", (socket) => {
+    io.on("connection", (socket) => {
       console.log(`New socket connected: ${socket.id}`);
 
       socket.on("event:message", async ({ message }: { message: string }) => {

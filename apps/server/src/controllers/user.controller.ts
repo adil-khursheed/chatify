@@ -8,6 +8,8 @@ import { User } from "../models/user.model";
 import { ApiResponse } from "../utils/ApiResponse";
 import { Event, EventType } from "../types";
 import { IncomingHttpHeaders } from "http";
+import { Document } from "mongoose";
+import jwt, { Secret } from "jsonwebtoken";
 
 const createUpdateOrDeleteUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -81,4 +83,76 @@ const createUpdateOrDeleteUser = asyncHandler(
   }
 );
 
-export { createUpdateOrDeleteUser };
+const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
+  const { search } = req.query;
+
+  const publishKey = process.env.CLERK_PEM_PUBLIC_KEY;
+  let userId;
+  try {
+    const token =
+      req.cookies.__session || req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      throw new ApiError(401, "Unauthorized request!");
+    }
+
+    const decodedToken = jwt.verify(token, publishKey as Secret);
+
+    const user = await User.findOne({ clerkId: decodedToken?.sub });
+
+    if (!user) {
+      throw new ApiError(401, "Invalid token!");
+    }
+
+    userId = user._id;
+  } catch (err: any) {
+    throw new ApiError(401, err?.message || "Invalid token!");
+  }
+
+  const userAggregation = User.aggregate<Document>([
+    {
+      $match: search?.length
+        ? {
+            $or: [
+              {
+                firstName: {
+                  $regex: search as string,
+                  $options: "i",
+                },
+              },
+              {
+                lastName: {
+                  $regex: search as string,
+                  $options: "i",
+                },
+              },
+              {
+                username: {
+                  $regex: search as string,
+                  $options: "i",
+                },
+              },
+              {
+                email: {
+                  $regex: search as string,
+                  $options: "i",
+                },
+              },
+            ],
+          }
+        : {},
+    },
+    {
+      $match: {
+        _id: {
+          $ne: userId,
+        },
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, userAggregation, "Users fetched successfully!"));
+});
+export { createUpdateOrDeleteUser, getAllUsers };
