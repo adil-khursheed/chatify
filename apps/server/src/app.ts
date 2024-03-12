@@ -16,7 +16,13 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "16kb" }));
+app.use((req, res, next) => {
+  if (req.originalUrl === "/api/v1/users/webhook") {
+    next();
+  } else {
+    express.json({ limit: "16kb" })(req, res, next);
+  }
+});
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());

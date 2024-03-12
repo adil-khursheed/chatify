@@ -1,11 +1,11 @@
 import bodyParser from "body-parser";
-import { Router } from "express";
-import { createUser } from "../controllers/user.controller";
+import express, { Router } from "express";
+import { createUpdateOrDeleteUser } from "../controllers/user.controller";
 
 const router = Router();
 
 router
   .route("/webhook")
-  .post(bodyParser.raw({ type: "application/json" }), createUser);
+  .post(express.raw({ type: "application/json" }), createUpdateOrDeleteUser);
 
 export default router;
