@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export type EventType = "user.created" | "user.updated" | "user.deleted";
 
 export type Event = {
@@ -7,11 +9,12 @@ export type Event = {
 };
 
 // === User Params ===
-export type CreateUserParams = {
+export type User = {
+  _id: Types.ObjectId;
   clerkId: string;
   firstName: string;
   lastName: string;
   username: string;
   email: string;
-  profilePhoto: string;
+  profilePhoto: string | undefined | null;
 };

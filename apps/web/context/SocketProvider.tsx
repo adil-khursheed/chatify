@@ -49,7 +49,9 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const _socket = io("http://localhost:8000");
+    const _socket = io("http://localhost:8000", {
+      withCredentials: true,
+    });
     _socket.on("message", onMessageReceived);
     setSocket(_socket);
 

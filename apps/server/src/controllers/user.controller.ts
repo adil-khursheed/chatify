@@ -86,29 +86,6 @@ const createUpdateOrDeleteUser = asyncHandler(
 const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   const { search } = req.query;
 
-  const publishKey = process.env.CLERK_PEM_PUBLIC_KEY;
-  let userId;
-  try {
-    const token =
-      req.cookies.__session || req.headers.authorization?.split(" ")[1];
-
-    if (!token) {
-      throw new ApiError(401, "Unauthorized request!");
-    }
-
-    const decodedToken = jwt.verify(token, publishKey as Secret);
-
-    const user = await User.findOne({ clerkId: decodedToken?.sub });
-
-    if (!user) {
-      throw new ApiError(401, "Invalid token!");
-    }
-
-    userId = user._id;
-  } catch (err: any) {
-    throw new ApiError(401, err?.message || "Invalid token!");
-  }
-
   const userAggregation = User.aggregate<Document>([
     {
       $match: search?.length
@@ -145,7 +122,7 @@ const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
     {
       $match: {
         _id: {
-          $ne: userId,
+          $ne: req.user?._id,
         },
       },
     },
