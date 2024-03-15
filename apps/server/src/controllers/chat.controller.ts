@@ -7,6 +7,7 @@ import { Chat } from "../models/chat.model";
 import mongoose from "mongoose";
 import { ApiResponse } from "../utils/ApiResponse";
 import { ChatEventEnum } from "../constants";
+import { RequireAuthProp } from "@clerk/clerk-sdk-node";
 
 const chatCommonAggregation = () => {
   return [
@@ -126,28 +127,30 @@ const createOrGetAOneOnOneChat = asyncHandler(
   }
 );
 
-const getAllChats = asyncHandler(async (req: Request, res: Response) => {
-  const chats = await Chat.aggregate([
-    {
-      $match: {
-        participants: {
-          $elemMatch: { $eq: req.user?._id },
+const getAllChats = asyncHandler(
+  async (req: RequireAuthProp<Request>, res: Response) => {
+    const chats = await Chat.aggregate([
+      {
+        $match: {
+          participants: {
+            $elemMatch: { $eq: req.user?._id },
+          },
         },
       },
-    },
-    {
-      $sort: {
-        updatedAt: -1,
+      {
+        $sort: {
+          updatedAt: -1,
+        },
       },
-    },
-    ...chatCommonAggregation(),
-  ]);
+      ...chatCommonAggregation(),
+    ]);
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, chats || [], "User chats fetched successfully!")
-    );
-});
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, chats || [], "User chats fetched successfully!")
+      );
+  }
+);
 
 export { createOrGetAOneOnOneChat, getAllChats };

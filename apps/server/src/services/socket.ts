@@ -84,7 +84,7 @@ class SocketService {
 
         const decodedToken = jwt.verify(
           token,
-          process.env.CLERK_PEM_PUBLIC_KEY as Secret
+          process.env.CLERK_SECRET_KEY as Secret
         );
 
         const user = await User.findOne({ clerkId: decodedToken?.sub });

@@ -1,39 +1,37 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useSocket } from "@/context/SocketProvider";
-import { useState } from "react";
 import { UserButton } from "@clerk/nextjs";
+import Image from "next/image";
+import { Search } from "lucide-react";
+import { useGetAllChats } from "@/features/chats/chatApi";
 
 const HomePage = () => {
-  const [message, setMessage] = useState("");
-  const { sendMessage, messages } = useSocket();
+  const { data: chats, isLoading: chatsLoading } = useGetAllChats();
 
-  const onMessageSubmit = () => {
-    sendMessage(message);
-    setMessage("");
-  };
+  console.log(chats);
+  if (chatsLoading) return <h2>Loading...</h2>;
   return (
-    <div className="max-w-5xl mx-auto p-5">
-      <UserButton />
-      <div>
-        <h1>All messages will appear here</h1>
-        <div>
-          {messages.map((msg, i) => (
-            <li key={i}>{msg}</li>
-          ))}
+    <main className="w-full h-screen flex items-center gap-3 bg-violet-100 dark:bg-slate-900 p-4">
+      <div className="w-full md:w-[600px] bg-white dark:bg-slate-800 rounded h-[99%] flex flex-col justify-start">
+        <div className="flex justify-between items-center border-b border-b-violet-50 dark:border-b-slate-700 px-2 py-3">
+          <Image src={"/logo.svg"} alt="Chatify Logo" width={120} height={80} />
+          <div>
+            <UserButton />
+          </div>
         </div>
+
+        <div className="border-b border-b-violet-50 dark:border-b-slate-700 py-3 px-2">
+          <div className="flex items-center gap-2">
+            <Search />
+            <Input placeholder="Search" type="text" />
+          </div>
+        </div>
+        {/* CHATS */}
       </div>
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="Type your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
-        <Button onClick={onMessageSubmit}>Send</Button>
-      </div>
-    </div>
+      <div className="w-full h-[99%] bg-white dark:bg-slate-800 rounded"></div>
+      {/* CHAT MESSAGES */}
+    </main>
   );
 };
 

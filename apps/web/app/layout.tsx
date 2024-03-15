@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SocketProvider } from "@/context/SocketProvider";
 import { ClerkProvider } from "@clerk/nextjs";
+import QueryProvider from "./queryProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,17 +21,19 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <SocketProvider>
-          <body className={inter.className}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange>
-              {children}
-            </ThemeProvider>
-          </body>
-        </SocketProvider>
+        <body className={inter.className}>
+          <QueryProvider>
+            <SocketProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange>
+                {children}
+              </ThemeProvider>
+            </SocketProvider>
+          </QueryProvider>
+        </body>
       </html>
     </ClerkProvider>
   );

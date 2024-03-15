@@ -10,6 +10,7 @@ import { Event, EventType } from "../types";
 import { IncomingHttpHeaders } from "http";
 import { Document } from "mongoose";
 import jwt, { Secret } from "jsonwebtoken";
+import { RequireAuthProp } from "@clerk/clerk-sdk-node";
 
 const createUpdateOrDeleteUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -83,53 +84,58 @@ const createUpdateOrDeleteUser = asyncHandler(
   }
 );
 
-const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
-  const { search } = req.query;
+const getAllUsers = asyncHandler(
+  async (req: RequireAuthProp<Request>, res: Response) => {
+    const { search } = req.query;
+    console.log(req.auth.userId);
 
-  const userAggregation = User.aggregate<Document>([
-    {
-      $match: search?.length
-        ? {
-            $or: [
-              {
-                firstName: {
-                  $regex: search as string,
-                  $options: "i",
+    const userAggregation = User.aggregate<Document>([
+      {
+        $match: search?.length
+          ? {
+              $or: [
+                {
+                  firstName: {
+                    $regex: search as string,
+                    $options: "i",
+                  },
                 },
-              },
-              {
-                lastName: {
-                  $regex: search as string,
-                  $options: "i",
+                {
+                  lastName: {
+                    $regex: search as string,
+                    $options: "i",
+                  },
                 },
-              },
-              {
-                username: {
-                  $regex: search as string,
-                  $options: "i",
+                {
+                  username: {
+                    $regex: search as string,
+                    $options: "i",
+                  },
                 },
-              },
-              {
-                email: {
-                  $regex: search as string,
-                  $options: "i",
+                {
+                  email: {
+                    $regex: search as string,
+                    $options: "i",
+                  },
                 },
-              },
-            ],
-          }
-        : {},
-    },
-    {
-      $match: {
-        _id: {
-          $ne: req.user?._id,
+              ],
+            }
+          : {},
+      },
+      {
+        $match: {
+          _id: {
+            $ne: { clerkId: req.auth?.userId },
+          },
         },
       },
-    },
-  ]);
+    ]);
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, userAggregation, "Users fetched successfully!"));
-});
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, userAggregation, "Users fetched successfully!")
+      );
+  }
+);
 export { createUpdateOrDeleteUser, getAllUsers };

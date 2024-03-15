@@ -1,12 +1,12 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { ApiError } from "../utils/ApiError";
 import jwt, { Secret } from "jsonwebtoken";
 import { User } from "../models/user.model";
 
 export const verifyJWT = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const publishKey = process.env.CLERK_PEM_PUBLIC_KEY;
+  async (req: Request, _, next: NextFunction) => {
+    const publishKey = process.env.CLERK_SECRET_KEY;
 
     try {
       const token =
@@ -16,7 +16,10 @@ export const verifyJWT = asyncHandler(
         throw new ApiError(401, "Unauthorized request!");
       }
 
+      console.log(token);
+
       const decodedToken = jwt.verify(token, publishKey as Secret);
+      console.log(decodedToken);
 
       const user = await User.findOne({ clerkId: decodedToken?.sub });
 
