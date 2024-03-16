@@ -60,7 +60,7 @@ const createOrGetAOneOnOneChat = asyncHandler(
       throw new ApiError(401, "Receiver does not exist!");
     }
 
-    if (receiver._id.toString() === req.user?._id.toString()) {
+    if (receiver.clerkId.toString() === req.auth.userId.toString()) {
       throw new ApiError(400, "You cannot chat with yourself!");
     }
 
@@ -70,7 +70,7 @@ const createOrGetAOneOnOneChat = asyncHandler(
           isGroupChat: false,
           $and: [
             {
-              participants: { $elemMatch: { $eq: req.user?._id } },
+              participants: { $elemMatch: { $eq: req.auth.userId } },
             },
             {
               participants: {
@@ -91,7 +91,7 @@ const createOrGetAOneOnOneChat = asyncHandler(
 
     const newChatInstance = await Chat.create({
       name: "one on one chat",
-      participants: [req.user?._id, new mongoose.Types.ObjectId(receiverId)],
+      participants: [req.auth.userId, new mongoose.Types.ObjectId(receiverId)],
       admin: req.user?._id,
     });
 
@@ -111,11 +111,11 @@ const createOrGetAOneOnOneChat = asyncHandler(
     }
 
     payload?.participants?.forEach((participant: any) => {
-      if (participant._id.toString() === req.user?._id.toString()) return;
+      if (participant.clerkId.toString() === req.auth.userId.toString()) return;
 
       emitSocketEvent(
         req,
-        participant._id.toString(),
+        participant.clerkId.toString(),
         ChatEventEnum.NEW_CHAT_EVENT,
         payload
       );
@@ -133,7 +133,7 @@ const getAllChats = asyncHandler(
       {
         $match: {
           participants: {
-            $elemMatch: { $eq: req.user?._id },
+            $elemMatch: { $eq: req.auth.userId },
           },
         },
       },

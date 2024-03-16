@@ -1,36 +1,28 @@
-"use client";
+import ChatPage from "@/components/chat-page";
+import Sidebar from "@/components/sidebar";
+import { getAllUsers } from "@/server/users.actions";
+import {
+  HydrationBoundary,
+  QueryClient,
+  dehydrate,
+} from "@tanstack/react-query";
 
-import { Input } from "@/components/ui/input";
-import { UserButton } from "@clerk/nextjs";
-import Image from "next/image";
-import { Search } from "lucide-react";
-import { useGetAllChats } from "@/features/chats/chatApi";
-
-const HomePage = () => {
-  const { data: chats, isLoading: chatsLoading } = useGetAllChats();
-
-  console.log(chats);
-  if (chatsLoading) return <h2>Loading...</h2>;
+const HomePage = async () => {
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: ["users"],
+    queryFn: getAllUsers,
+  });
   return (
-    <main className="w-full h-screen flex items-center gap-3 bg-violet-100 dark:bg-slate-900 p-4">
-      <div className="w-full md:w-[600px] bg-white dark:bg-slate-800 rounded h-[99%] flex flex-col justify-start">
-        <div className="flex justify-between items-center border-b border-b-violet-50 dark:border-b-slate-700 px-2 py-3">
-          <Image src={"/logo.svg"} alt="Chatify Logo" width={120} height={80} />
-          <div>
-            <UserButton />
-          </div>
-        </div>
-
-        <div className="border-b border-b-violet-50 dark:border-b-slate-700 py-3 px-2">
-          <div className="flex items-center gap-2">
-            <Search />
-            <Input placeholder="Search" type="text" />
-          </div>
-        </div>
-        {/* CHATS */}
-      </div>
-      <div className="w-full h-[99%] bg-white dark:bg-slate-800 rounded"></div>
-      {/* CHAT MESSAGES */}
+    <main className="w-full h-screen grid grid-cols-12 gap-3 bg-violet-100 dark:bg-slate-900 p-4">
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <section className="hidden md:col-span-4 h-[99%] bg-white dark:bg-slate-800 rounded md:flex md:flex-col md:justify-start">
+          <Sidebar />
+        </section>
+        <section className="col-span-12 md:col-span-8 h-[99%] bg-white dark:bg-slate-800 rounded">
+          <ChatPage />
+        </section>
+      </HydrationBoundary>
     </main>
   );
 };

@@ -86,50 +86,19 @@ const createUpdateOrDeleteUser = asyncHandler(
 
 const getAllUsers = asyncHandler(
   async (req: RequireAuthProp<Request>, res: Response) => {
-    const { search } = req.query;
     console.log(req.auth.userId);
 
-    const userAggregation = User.aggregate<Document>([
-      {
-        $match: search?.length
-          ? {
-              $or: [
-                {
-                  firstName: {
-                    $regex: search as string,
-                    $options: "i",
-                  },
-                },
-                {
-                  lastName: {
-                    $regex: search as string,
-                    $options: "i",
-                  },
-                },
-                {
-                  username: {
-                    $regex: search as string,
-                    $options: "i",
-                  },
-                },
-                {
-                  email: {
-                    $regex: search as string,
-                    $options: "i",
-                  },
-                },
-              ],
-            }
-          : {},
-      },
+    const userAggregation = await User.aggregate<Document>([
       {
         $match: {
-          _id: {
-            $ne: { clerkId: req.auth?.userId },
+          clerkId: {
+            $ne: req.auth?.userId,
           },
         },
       },
     ]);
+
+    console.log(userAggregation);
 
     return res
       .status(200)
