@@ -10,6 +10,7 @@ const router = Router();
 
 router.use(ClerkExpressRequireAuth);
 
-router.route("/").get(getAllChats).post(createOrGetAOneOnOneChat);
+router.route("/").get(getAllChats);
+router.route("/:receiverId").post(createOrGetAOneOnOneChat);
 
 export default router;

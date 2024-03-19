@@ -1,9 +1,9 @@
 "use server";
 
 import axios from "@/axios/axios";
-import { useAuth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs";
 
-const { getToken } = useAuth();
+const { getToken } = auth();
 
 export const getAllChats = async () => {
   try {
@@ -15,6 +15,27 @@ export const getAllChats = async () => {
       },
       withCredentials: true,
     });
+
+    return res.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const createOrGetAOneOnOneChat = async (receiverId: string) => {
+  try {
+    const token = await getToken();
+    const res = await axios.post(
+      `/chats/${receiverId}`,
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      }
+    );
 
     return res.data;
   } catch (error) {

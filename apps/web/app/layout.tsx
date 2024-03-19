@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SocketProvider } from "@/context/SocketProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 import Providers from "./providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={inter.className}>
+        <body className={`${inter.className} bg-violet-50 dark:bg-slate-900`}>
           <Providers>
             <SocketProvider>
               <ThemeProvider
@@ -30,6 +31,7 @@ export default function RootLayout({
                 enableSystem
                 disableTransitionOnChange>
                 {children}
+                <Toaster />
               </ThemeProvider>
             </SocketProvider>
           </Providers>

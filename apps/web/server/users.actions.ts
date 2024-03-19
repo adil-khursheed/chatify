@@ -5,10 +5,10 @@ import { auth } from "@clerk/nextjs";
 
 const { getToken } = auth();
 
-export const getAllUsers = async () => {
+export const getAllUsers = async (search: string) => {
   try {
     const token = await getToken();
-    const res = await apiClient.get("/users", {
+    const res = await apiClient.get(`/users?search=${search}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

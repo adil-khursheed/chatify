@@ -92,7 +92,7 @@ const createOrGetAOneOnOneChat = asyncHandler(
     const newChatInstance = await Chat.create({
       name: "one on one chat",
       participants: [req.auth.userId, new mongoose.Types.ObjectId(receiverId)],
-      admin: req.user?._id,
+      admin: req.auth.userId,
     });
 
     const createdChat = await Chat.aggregate([
@@ -123,7 +123,7 @@ const createOrGetAOneOnOneChat = asyncHandler(
 
     return res
       .status(201)
-      .json(new ApiResponse(200, payload, "Chat created successfully!"));
+      .json(new ApiResponse(201, payload, "Chat created successfully!"));
   }
 );
 

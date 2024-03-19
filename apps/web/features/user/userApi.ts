@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllUsers } from "@/server/users.actions";
 
-export const useGetAllUsers = () => {
+export const useGetAllUsers = (search: string) => {
   return useQuery({
-    queryKey: ["users"],
-    queryFn: async () => await getAllUsers(),
+    queryKey: ["users", search],
+    queryFn: async () => await getAllUsers(search),
   });
 };
