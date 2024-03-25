@@ -5,7 +5,7 @@ import Redis from "ioredis";
 import conf from "../conf/conf";
 import { ApiError } from "../utils/ApiError";
 import { User } from "../models/user.model";
-import { User as UserType } from "../types";
+import { TUser } from "../types";
 import { ChatEventEnum } from "../constants";
 
 const pub = new Redis({
@@ -23,7 +23,7 @@ const sub = new Redis({
 
 declare module "socket.io" {
   interface Socket {
-    user?: UserType;
+    user?: TUser;
   }
 }
 
@@ -87,6 +87,8 @@ class SocketService {
           process.env.CLERK_SECRET_KEY as Secret
         );
 
+        console.log(decodedToken);
+
         const user = await User.findOne({ clerkId: decodedToken?.sub });
         if (!user) {
           throw new ApiError(401, "Unauthorized request. Token is invalid.");
@@ -139,6 +141,10 @@ class SocketService {
       }
     });
   }
+
+  emitSocketEvent = (roomId: string, event: string, payload: any) => {
+    this._io.in(roomId).emit(event, payload);
+  };
 
   get io() {
     return this._io;

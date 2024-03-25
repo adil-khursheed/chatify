@@ -9,7 +9,7 @@ export type Event = {
 };
 
 // === User Params ===
-export type User = {
+export type TUser = {
   _id: Types.ObjectId;
   clerkId: string;
   firstName: string;

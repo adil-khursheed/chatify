@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import { emitSocketEvent } from "../utils/emitSocketEvent";
+// import { emitSocketEvent } from "../utils/emitSocketEvent";
 import { User } from "../models/user.model";
 import { ApiError } from "../utils/ApiError";
 import { Chat } from "../models/chat.model";
@@ -8,6 +8,10 @@ import mongoose from "mongoose";
 import { ApiResponse } from "../utils/ApiResponse";
 import { ChatEventEnum } from "../constants";
 import { RequireAuthProp } from "@clerk/clerk-sdk-node";
+import SocketService from "../services/socket";
+import { TUser } from "../types";
+
+const socketService = new SocketService();
 
 const chatCommonAggregation = () => {
   return [
@@ -112,22 +116,78 @@ const createOrGetAOneOnOneChat = asyncHandler(
       throw new ApiError(500, "Internal server Error!");
     }
 
-    // payload?.participants?.forEach((participant: any) => {
-    //   if (participant._id.toString() === currentUser?._id.toString()) return;
+    payload?.participants?.forEach((participant: TUser) => {
+      if (participant._id.toString() === currentUser?._id.toString()) return;
 
-    //   emitSocketEvent(
-    //     req,
-    //     participant._id?.toString(),
-    //     ChatEventEnum.NEW_CHAT_EVENT,
-    //     payload
-    //   );
-    // });
+      socketService.emitSocketEvent(
+        participant._id?.toString(),
+        ChatEventEnum.NEW_CHAT_EVENT,
+        payload
+      );
+    });
 
     return res
       .status(201)
       .json(new ApiResponse(201, payload, "Chat created successfully!"));
   }
 );
+
+const createAGroupChat = asyncHandler(async (req: Request, res: Response) => {
+  const { name, participants } = req.body;
+  const currentUser = await User.findOne({ clerkId: req.auth.userId });
+
+  if (participants.includes(currentUser?._id.toString())) {
+    throw new ApiError(
+      400,
+      "Participant array should not contain the group creator"
+    );
+  }
+
+  const members = [...new Set([...participants, currentUser?._id.toString()])];
+
+  if (members.length < 3) {
+    throw new ApiError(
+      400,
+      "Seems like you have passed duplicate participants"
+    );
+  }
+
+  const groupChat = await Chat.create({
+    name,
+    isGroupChat: true,
+    participants: members,
+    admin: currentUser?._id,
+  });
+
+  const chat = await Chat.aggregate([
+    {
+      $match: {
+        _id: groupChat._id,
+      },
+    },
+    ...chatCommonAggregation(),
+  ]);
+
+  const payload = chat[0];
+
+  if (!payload) {
+    throw new ApiError(500, "Internal server error");
+  }
+
+  payload?.participants?.forEach((participant: TUser) => {
+    if (participant._id.toString() === currentUser?._id.toString()) return;
+
+    socketService.emitSocketEvent(
+      participant._id?.toString(),
+      ChatEventEnum.NEW_CHAT_EVENT,
+      payload
+    );
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, payload, "Group chat created successfully!"));
+});
 
 const getAllChats = asyncHandler(
   async (req: RequireAuthProp<Request>, res: Response) => {
@@ -157,4 +217,4 @@ const getAllChats = asyncHandler(
   }
 );
 
-export { createOrGetAOneOnOneChat, getAllChats };
+export { createOrGetAOneOnOneChat, createAGroupChat, getAllChats };
