@@ -18,8 +18,8 @@ import { useGetAllUsers } from "@/features/user/userApi";
 import Image from "next/image";
 import useDebounce from "@/hooks/useDebounce";
 import { IUser } from "@/lib/interfaces/interfaces";
-import { useCreateOrGetAOneOnOneChat } from "@/features/chats/chatApi";
 import { toast } from "sonner";
+import { useCreateOrGetAOneOnOneChat } from "@/features/chats/chatApi";
 
 export function CreateChatDialog() {
   const [groupName, setGroupName] = useState("");
@@ -27,14 +27,19 @@ export function CreateChatDialog() {
   const [userModal, setUserModal] = useState(false);
   const [search, setSearch] = useState("");
   const [groupParticipants, setGroupParticipants] = useState<string[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<null | string>(null);
+  const [selectedUserId, setSelectedUserId] = useState("");
+
+  // to trigger dialog box close functionality on successfully chat creation
+  const [open, setOpen] = useState(false);
+
   const userModalRef: MutableRefObject<HTMLDivElement | null> = useRef(null);
 
   const debouncedSearchTerm = useDebounce(search, 500);
 
-  const { data: users } = useGetAllUsers(debouncedSearchTerm || "");
+  const { data: users } = useGetAllUsers(debouncedSearchTerm);
+
   const { mutateAsync: createAOneOnOneChat, isPending: creatingOneOnOneChat } =
-    useCreateOrGetAOneOnOneChat(selectedUserId || "");
+    useCreateOrGetAOneOnOneChat(selectedUserId);
 
   const handleCreateAOneOnOneChat = async () => {
     if (!selectedUserId) return toast("Please select a user!");
@@ -47,7 +52,9 @@ export function CreateChatDialog() {
         return;
       }
 
-      toast("New chat has been created.");
+      toast(res.message);
+      onHandleDialogClose();
+      console.log(res);
     } catch (error) {
       console.log(error);
     }
@@ -67,6 +74,16 @@ export function CreateChatDialog() {
       setSelectedUserId(userId);
       setUserModal(false);
     }
+  };
+
+  const onHandleDialogClose = () => {
+    setGroupName("");
+    setGroupParticipants([]);
+    setSelectedUserId("");
+    setIsGroupChat(false);
+    setSearch("");
+    setUserModal(false);
+    setOpen(false);
   };
 
   const onUserModalClose: () => void = () => {
@@ -91,7 +108,7 @@ export function CreateChatDialog() {
   }, [onUserModalClose, userModalRef]);
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <MessageSquareMore className="w-5 h-auto text-slate-900 dark:text-violet-50 cursor-pointer" />
       </DialogTrigger>
@@ -132,9 +149,9 @@ export function CreateChatDialog() {
             />
 
             {userModal ? (
-              <div className="w-full absolute left-0 right-0 -bottom-48 z-20 bg-white dark:bg-slate-800 py-2 rounded">
+              <div className="w-full h-fit absolute left-0 right-0 z-20 bg-white dark:bg-slate-800 py-2 rounded">
                 {users?.data.length > 0 ? (
-                  users?.data?.slice(0, 4)?.map((user: IUser) => (
+                  users?.data?.slice(0, 5)?.map((user: IUser) => (
                     <div key={user._id} className="w-full">
                       <Button
                         variant={"ghost"}

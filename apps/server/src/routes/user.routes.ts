@@ -3,7 +3,6 @@ import {
   createUpdateOrDeleteUser,
   getAllUsers,
 } from "../controllers/user.controller";
-import { verifyJWT } from "../middlewares/auth.middleware";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 
 const router = Router();

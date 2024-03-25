@@ -64,13 +64,15 @@ const createOrGetAOneOnOneChat = asyncHandler(
       throw new ApiError(400, "You cannot chat with yourself!");
     }
 
+    const currentUser = await User.findOne({ clerkId: req.auth.userId });
+
     const chat = await Chat.aggregate([
       {
         $match: {
           isGroupChat: false,
           $and: [
             {
-              participants: { $elemMatch: { $eq: req.auth.userId } },
+              participants: { $elemMatch: { $eq: currentUser?._id } },
             },
             {
               participants: {
@@ -91,8 +93,8 @@ const createOrGetAOneOnOneChat = asyncHandler(
 
     const newChatInstance = await Chat.create({
       name: "one on one chat",
-      participants: [req.auth.userId, new mongoose.Types.ObjectId(receiverId)],
-      admin: req.auth.userId,
+      participants: [currentUser?._id, new mongoose.Types.ObjectId(receiverId)],
+      admin: currentUser?._id,
     });
 
     const createdChat = await Chat.aggregate([
@@ -110,16 +112,16 @@ const createOrGetAOneOnOneChat = asyncHandler(
       throw new ApiError(500, "Internal server Error!");
     }
 
-    payload?.participants?.forEach((participant: any) => {
-      if (participant.clerkId.toString() === req.auth.userId.toString()) return;
+    // payload?.participants?.forEach((participant: any) => {
+    //   if (participant._id.toString() === currentUser?._id.toString()) return;
 
-      emitSocketEvent(
-        req,
-        participant.clerkId.toString(),
-        ChatEventEnum.NEW_CHAT_EVENT,
-        payload
-      );
-    });
+    //   emitSocketEvent(
+    //     req,
+    //     participant._id?.toString(),
+    //     ChatEventEnum.NEW_CHAT_EVENT,
+    //     payload
+    //   );
+    // });
 
     return res
       .status(201)
@@ -129,11 +131,13 @@ const createOrGetAOneOnOneChat = asyncHandler(
 
 const getAllChats = asyncHandler(
   async (req: RequireAuthProp<Request>, res: Response) => {
+    const currentUser = await User.findOne({ clerkId: req.auth.userId });
+
     const chats = await Chat.aggregate([
       {
         $match: {
           participants: {
-            $elemMatch: { $eq: req.auth.userId },
+            $elemMatch: { $eq: currentUser?._id },
           },
         },
       },

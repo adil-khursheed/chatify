@@ -1,68 +1,62 @@
 "use client";
 
+import { getToken } from "@/lib/getToken";
 import {
   createContext,
   FC,
   ReactNode,
-  useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 
 interface SocketProviderProps {
   children?: ReactNode;
 }
 
-interface ISocketContext {
-  sendMessage: (msg: string) => any;
-  messages: string[];
-}
+const getSocket = async () => {
+  const token = await getToken();
 
-const SocketContext = createContext<ISocketContext | null>(null);
+  const socketURI = process.env.NEXT_PUBLIC_SOCKET_URI || "";
 
-export const useSocket = () => {
-  const state = useContext(SocketContext);
-  if (!state) throw new Error("state is undefined!");
-
-  return state;
+  return io(socketURI, {
+    withCredentials: true,
+    auth: { token },
+  });
 };
 
-export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
-  const [socket, setSocket] = useState<Socket>();
-  const [messages, setMessages] = useState<string[]>([]);
-  const sendMessage: ISocketContext["sendMessage"] = useCallback(
-    (msg) => {
-      console.log(`Send Message - ${msg}`);
-      if (socket) {
-        socket.emit("event:message", { message: msg });
-      }
-    },
-    [socket]
-  );
+const SocketContext = createContext<{
+  socket: ReturnType<typeof io> | null;
+}>({
+  socket: null,
+});
 
-  const onMessageReceived = useCallback((msg: string) => {
-    console.log(`Message received from server - ${msg}`);
-    const { message } = JSON.parse(msg) as { message: string };
-    setMessages((prev) => [...prev, message]);
-  }, []);
+export const useSocket = () => useContext(SocketContext);
+
+export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
+  const [socket, setSocket] = useState<ReturnType<typeof io> | null>(null);
 
   useEffect(() => {
-    const _socket = io("http://localhost:8000", {
-      withCredentials: true,
-    });
-    _socket.on("message", onMessageReceived);
-    setSocket(_socket);
+    const initializeSocket = async () => {
+      try {
+        const newSocket = await getSocket();
+        setSocket(newSocket);
+      } catch (error) {
+        console.log("Error initializing socket: ", error);
+      }
+    };
+
+    initializeSocket();
 
     return () => {
-      _socket.disconnect();
-      _socket.off("message", onMessageReceived);
-      setSocket(undefined);
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, []);
   return (
-    <SocketContext.Provider value={{ sendMessage, messages }}>
+    <SocketContext.Provider value={{ socket }}>
       {children}
     </SocketContext.Provider>
   );

@@ -6,8 +6,8 @@ import { auth } from "@clerk/nextjs";
 const { getToken } = auth();
 
 export const getAllUsers = async (search: string) => {
+  const token = await getToken();
   try {
-    const token = await getToken();
     const res = await apiClient.get(`/users?search=${search}`, {
       headers: {
         "Content-Type": "application/json",
@@ -16,7 +16,7 @@ export const getAllUsers = async (search: string) => {
       withCredentials: true,
     });
     return res.data;
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
   }
 };
