@@ -33,7 +33,7 @@ export default function Page() {
               </h1>
             </div>
 
-            <SignIn />
+            <SignIn afterSignInUrl={"/chats"} />
           </div>
         </main>
       </div>

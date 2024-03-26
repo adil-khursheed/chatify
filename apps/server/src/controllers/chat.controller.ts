@@ -134,6 +134,9 @@ const createOrGetAOneOnOneChat = asyncHandler(
 
 const createAGroupChat = asyncHandler(async (req: Request, res: Response) => {
   const { name, participants } = req.body;
+  console.log("Group name: ", name);
+  console.log("Participants: ", participants);
+
   const currentUser = await User.findOne({ clerkId: req.auth.userId });
 
   if (participants.includes(currentUser?._id.toString())) {
@@ -143,7 +146,9 @@ const createAGroupChat = asyncHandler(async (req: Request, res: Response) => {
     );
   }
 
-  const members = [...new Set([...participants, currentUser?._id.toString()])];
+  const members: string[] = [
+    ...new Set([...participants, currentUser?._id.toString()]),
+  ];
 
   if (members.length < 3) {
     throw new ApiError(
@@ -152,10 +157,16 @@ const createAGroupChat = asyncHandler(async (req: Request, res: Response) => {
     );
   }
 
+  const membersObjectId = members.map(
+    (member) => new mongoose.Types.ObjectId(member)
+  );
+
+  console.log(membersObjectId);
+
   const groupChat = await Chat.create({
     name,
     isGroupChat: true,
-    participants: members,
+    participants: membersObjectId,
     admin: currentUser?._id,
   });
 

@@ -1,7 +1,11 @@
 import React from "react";
 
-const ChatDetailsPage = () => {
-  return <div>ChatDetailsPage</div>;
+interface IParams {
+  chatId: string;
+}
+
+const ChatDetailsPage = ({ params }: { params: IParams }) => {
+  return <div className="md:pl-[420px]">ChatDetailsPage</div>;
 };
 
 export default ChatDetailsPage;

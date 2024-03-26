@@ -1,20 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/axios/axios";
-import { getToken } from "@/lib/getToken";
 
 export const useGetAllChats = () => {
   return useQuery({
     queryKey: ["chats"],
     queryFn: async () => {
-      const token = await getToken();
       try {
-        const res = await apiClient.get("/chats", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        });
+        const res = await apiClient.get("/chats");
 
         return res.data;
       } catch (error) {
@@ -29,24 +21,28 @@ export const useCreateOrGetAOneOnOneChat = (receiverId: string) => {
 
   return useMutation({
     mutationFn: async () => {
-      const token = await getToken();
       try {
-        const res = await apiClient.post(
-          `/chats/${receiverId}`,
-          {},
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            withCredentials: true,
-          }
-        );
+        const res = await apiClient.post(`/chats/${receiverId}`);
 
         return res.data;
       } catch (error) {
         console.log(error);
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["chats"],
+      });
+    },
+  });
+};
+
+export const useCreateAGroupChat = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { name: string; participants: string[] }) => {
+      const res = await apiClient.post("/chats/group", data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

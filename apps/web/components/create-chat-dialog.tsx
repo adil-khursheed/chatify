@@ -19,7 +19,10 @@ import Image from "next/image";
 import useDebounce from "@/hooks/useDebounce";
 import { IUser } from "@/lib/interfaces/interfaces";
 import { toast } from "sonner";
-import { useCreateOrGetAOneOnOneChat } from "@/features/chats/chatApi";
+import {
+  useCreateAGroupChat,
+  useCreateOrGetAOneOnOneChat,
+} from "@/features/chats/chatApi";
 
 export function CreateChatDialog() {
   const [groupName, setGroupName] = useState("");
@@ -41,26 +44,48 @@ export function CreateChatDialog() {
   const { mutateAsync: createAOneOnOneChat, isPending: creatingOneOnOneChat } =
     useCreateOrGetAOneOnOneChat(selectedUserId);
 
+  const { mutateAsync: createAGroupChat, isPending: creatingAGroupChat } =
+    useCreateAGroupChat();
+
   const handleCreateAOneOnOneChat = async () => {
     if (!selectedUserId) return toast("Please select a user!");
 
     try {
       const res = await createAOneOnOneChat();
 
-      if (res.statusCode === "200") {
+      if (res.statusCode === 200) {
         toast("Chat with selected user already exists!");
         return;
       }
 
       toast(res.message);
       onHandleDialogClose();
-      console.log(res);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const handleCreateGroupChat = async () => {};
+  const handleCreateGroupChat = async () => {
+    if (!groupName) return toast("Group name is required");
+
+    if (!groupParticipants.length || groupParticipants.length < 2) {
+      return toast("There must be at least 2 group participants");
+    }
+
+    try {
+      const res = await createAGroupChat({
+        name: groupName,
+        participants: groupParticipants,
+      });
+
+      if (res) {
+        toast(res.message);
+        onHandleDialogClose();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handleSelectedUsers = (userId: string) => {
     if (isGroupChat && !groupParticipants.includes(userId)) {
@@ -110,7 +135,7 @@ export function CreateChatDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <MessageSquareMore className="w-5 h-auto text-slate-900 dark:text-violet-50 cursor-pointer" />
+        <Button>Add Chat</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -246,7 +271,7 @@ export function CreateChatDialog() {
           <Button
             type="button"
             className="w-full"
-            disabled={creatingOneOnOneChat}
+            disabled={creatingOneOnOneChat || creatingAGroupChat}
             onClick={
               isGroupChat ? handleCreateGroupChat : handleCreateAOneOnOneChat
             }>
