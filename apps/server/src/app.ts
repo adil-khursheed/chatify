@@ -30,9 +30,11 @@ app.use(cookieParser());
 // routes import
 import userRoute from "./routes/user.routes";
 import chatRoute from "./routes/chat.routes";
+import messageRoute from "./routes/message.routes";
 
 // routes declaration
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/chats", chatRoute);
+app.use("/api/v1/messages", messageRoute);
 
 export { httpServer, socketService };

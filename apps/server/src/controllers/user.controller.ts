@@ -9,7 +9,6 @@ import { ApiResponse } from "../utils/ApiResponse";
 import { Event, EventType } from "../types";
 import { IncomingHttpHeaders } from "http";
 import { Document } from "mongoose";
-import jwt, { Secret } from "jsonwebtoken";
 import { RequireAuthProp } from "@clerk/clerk-sdk-node";
 
 const createUpdateOrDeleteUser = asyncHandler(

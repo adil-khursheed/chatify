@@ -53,7 +53,9 @@ const ChatSidebar = () => {
 
       <div>
         {chatsLoading ? (
-          <ChatSkeleton />
+          <div className="px-2 py-3">
+            <ChatSkeleton />
+          </div>
         ) : (
           <>
             {chats.data.length > 0 ? (

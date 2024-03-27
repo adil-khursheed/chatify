@@ -55,7 +55,7 @@ const chatCommonAggregation = () => {
 };
 
 const createOrGetAOneOnOneChat = asyncHandler(
-  async (req: Request, res: Response) => {
+  async (req: RequireAuthProp<Request>, res: Response) => {
     const { receiverId } = req.params;
 
     const receiver = await User.findById(receiverId);
@@ -132,73 +132,95 @@ const createOrGetAOneOnOneChat = asyncHandler(
   }
 );
 
-const createAGroupChat = asyncHandler(async (req: Request, res: Response) => {
-  const { name, participants } = req.body;
-  console.log("Group name: ", name);
-  console.log("Participants: ", participants);
+const createAGroupChat = asyncHandler(
+  async (req: RequireAuthProp<Request>, res: Response) => {
+    const { name, participants } = req.body;
 
-  const currentUser = await User.findOne({ clerkId: req.auth.userId });
+    const currentUser = await User.findOne({ clerkId: req.auth.userId });
 
-  if (participants.includes(currentUser?._id.toString())) {
-    throw new ApiError(
-      400,
-      "Participant array should not contain the group creator"
-    );
-  }
+    if (participants.includes(currentUser?._id.toString())) {
+      throw new ApiError(
+        400,
+        "Participant array should not contain the group creator"
+      );
+    }
 
-  const members: string[] = [
-    ...new Set([...participants, currentUser?._id.toString()]),
-  ];
+    const members = [
+      ...new Set([...participants, currentUser?._id.toString()]),
+    ];
 
-  if (members.length < 3) {
-    throw new ApiError(
-      400,
-      "Seems like you have passed duplicate participants"
-    );
-  }
+    if (members.length < 3) {
+      throw new ApiError(
+        400,
+        "Seems like you have passed duplicate participants"
+      );
+    }
 
-  const membersObjectId = members.map(
-    (member) => new mongoose.Types.ObjectId(member)
-  );
+    const groupChat = await Chat.create({
+      name,
+      isGroupChat: true,
+      participants: members,
+      admin: currentUser?._id,
+    });
 
-  console.log(membersObjectId);
-
-  const groupChat = await Chat.create({
-    name,
-    isGroupChat: true,
-    participants: membersObjectId,
-    admin: currentUser?._id,
-  });
-
-  const chat = await Chat.aggregate([
-    {
-      $match: {
-        _id: groupChat._id,
+    const chat = await Chat.aggregate([
+      {
+        $match: {
+          _id: groupChat._id,
+        },
       },
-    },
-    ...chatCommonAggregation(),
-  ]);
+      ...chatCommonAggregation(),
+    ]);
 
-  const payload = chat[0];
+    const payload = chat[0];
 
-  if (!payload) {
-    throw new ApiError(500, "Internal server error");
+    if (!payload) {
+      throw new ApiError(500, "Internal server error");
+    }
+
+    payload?.participants?.forEach((participant: TUser) => {
+      if (participant._id.toString() === currentUser?._id.toString()) return;
+
+      socketService.emitSocketEvent(
+        participant._id?.toString(),
+        ChatEventEnum.NEW_CHAT_EVENT,
+        payload
+      );
+    });
+
+    return res
+      .status(201)
+      .json(new ApiResponse(201, payload, "Group chat created successfully!"));
   }
+);
 
-  payload?.participants?.forEach((participant: TUser) => {
-    if (participant._id.toString() === currentUser?._id.toString()) return;
+const getGroupChatDetails = asyncHandler(
+  async (req: RequireAuthProp<Request>, res: Response) => {
+    const { chatId } = req.params;
 
-    socketService.emitSocketEvent(
-      participant._id?.toString(),
-      ChatEventEnum.NEW_CHAT_EVENT,
-      payload
-    );
-  });
+    const chat = await Chat.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(chatId),
+          isGroupChat: true,
+        },
+      },
+      ...chatCommonAggregation(),
+    ]);
 
-  return res
-    .status(201)
-    .json(new ApiResponse(201, payload, "Group chat created successfully!"));
-});
+    const groupChat = chat[0];
+
+    if (!groupChat) {
+      throw new ApiError(404, "Group chat does not exist!");
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, groupChat, "Group chat fetched successfully!")
+      );
+  }
+);
 
 const getAllChats = asyncHandler(
   async (req: RequireAuthProp<Request>, res: Response) => {
@@ -228,4 +250,9 @@ const getAllChats = asyncHandler(
   }
 );
 
-export { createOrGetAOneOnOneChat, createAGroupChat, getAllChats };
+export {
+  createOrGetAOneOnOneChat,
+  createAGroupChat,
+  getGroupChatDetails,
+  getAllChats,
+};

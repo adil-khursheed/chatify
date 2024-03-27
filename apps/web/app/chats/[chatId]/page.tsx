@@ -5,7 +5,11 @@ interface IParams {
 }
 
 const ChatDetailsPage = ({ params }: { params: IParams }) => {
-  return <div className="md:pl-[420px]">ChatDetailsPage</div>;
+  return (
+    <div className="md:pl-[420px] bg-white dark:bg-slate-800 h-full">
+      ChatDetailsPage
+    </div>
+  );
 };
 
 export default ChatDetailsPage;

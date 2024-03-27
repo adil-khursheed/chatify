@@ -22,7 +22,7 @@ export const useCreateOrGetAOneOnOneChat = (receiverId: string) => {
   return useMutation({
     mutationFn: async () => {
       try {
-        const res = await apiClient.post(`/chats/${receiverId}`);
+        const res = await apiClient.post(`/chats/c/${receiverId}`);
 
         return res.data;
       } catch (error) {
