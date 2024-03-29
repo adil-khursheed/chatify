@@ -21,7 +21,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        layout: {
+          logoImageUrl: "/chatify-logo.svg",
+        },
+        variables: {
+          colorPrimary: "#6D28D9",
+        },
+      }}>
       <html lang="en">
         <body className={`${inter.className} bg-violet-50 dark:bg-slate-900`}>
           <Providers>

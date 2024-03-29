@@ -29,11 +29,12 @@ export default function ChatsLayout({
     if (!socket) return;
 
     socket.on(ChatEventEnum.CONNECTED_EVENT, onConnect);
+    console.log(isConnected);
 
     return () => {
       socket.off(ChatEventEnum.DISCONNECT_EVENT, onDisconnect);
     };
-  }, []);
+  }, [socket]);
   return (
     <Sidebar>
       <div className="h-full">

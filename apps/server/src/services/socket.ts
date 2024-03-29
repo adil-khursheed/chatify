@@ -71,6 +71,7 @@ class SocketService {
       console.log(`New socket connected: ${socket.id}`);
 
       try {
+        const publicKey = process.env.CLERK_PEM_PUBLIC_KEY || "";
         const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
         let token = cookies?.__session;
 
@@ -82,12 +83,10 @@ class SocketService {
           throw new ApiError(401, "Unauthorized handshake. Token is missing!");
         }
 
-        const decodedToken = jwt.verify(
-          token,
-          process.env.CLERK_SECRET_KEY as Secret
-        );
-
-        console.log(decodedToken);
+        let decodedToken;
+        if (token) {
+          decodedToken = jwt.verify(token, publicKey);
+        }
 
         const user = await User.findOne({ clerkId: decodedToken?.sub });
         if (!user) {
