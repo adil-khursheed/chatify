@@ -57,14 +57,14 @@ const ChatItem: React.FC<{ chat: IChatItem }> = ({ chat }) => {
         <p className="truncate">{getChatObjectMetaData(chat, userId!).title}</p>
         <div className="w-full inline-flex items-center text-left">
           {chat.lastMessage && chat.lastMessage.attachments.length > 0 ? (
-            <Paperclip className="w-3 h-3 text-white/50 mr-2 flex" />
+            <Paperclip className="w-3 h-3 text-slate-400 dark:text-white/50 mr-2 flex" />
           ) : null}
-          <small className="text-white/50 text-sm truncate text-ellipsis inline-flex items-center">
+          <small className="text-slate-400 dark:text-white/50 text-sm truncate text-ellipsis inline-flex items-center">
             {getChatObjectMetaData(chat, userId!).lastMessage}
           </small>
         </div>
       </div>
-      <div className="h-full text-sm text-white/50 flex items-end">
+      <div className="h-full text-sm text-slate-400 dark:text-white/50 flex items-end">
         <small>
           {moment(chat.updatedAt).add("TIME_ZONE", "hours").fromNow(true)}
         </small>

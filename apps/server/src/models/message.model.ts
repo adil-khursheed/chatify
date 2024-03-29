@@ -12,7 +12,7 @@ const messageSchema = new Schema(
     attachments: {
       type: [
         {
-          publicId: String,
+          key: String,
           url: String,
         },
       ],

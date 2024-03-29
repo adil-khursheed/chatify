@@ -10,6 +10,6 @@ router.use(ClerkExpressRequireAuth());
 router
   .route("/:chatId")
   .get(getAllMessages)
-  .post(upload.fields([{ name: "attachments", maxCount: 5 }]), sendMessage);
+  .post(upload.fields([{ name: "attachments", maxCount: 10 }]), sendMessage);
 
 export default router;

@@ -13,9 +13,15 @@ import { IChatItem } from "@/lib/interfaces/interfaces";
 import clsx from "clsx";
 import useChat from "@/hooks/useChat";
 
-const ChatSidebar = () => {
+const ChatSidebar = ({
+  chats,
+  chatsLoading,
+}: {
+  chats: IChatItem[];
+  chatsLoading: boolean;
+}) => {
   const { isOpen } = useChat();
-  const { data: chats, isLoading: chatsLoading } = useGetAllChats();
+  // const { data: chats, isLoading: chatsLoading } = useGetAllChats();
 
   return (
     <aside
@@ -58,9 +64,9 @@ const ChatSidebar = () => {
           </div>
         ) : (
           <>
-            {chats.data.length > 0 ? (
+            {chats.length > 0 ? (
               <>
-                {chats.data.map((chat: IChatItem) => (
+                {chats.map((chat: IChatItem) => (
                   <ChatItem key={chat._id} chat={chat} />
                 ))}
               </>
