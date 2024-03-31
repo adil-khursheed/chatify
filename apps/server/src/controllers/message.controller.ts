@@ -31,6 +31,7 @@ const chatMessageCommonAggregation = () => {
               firstName: 1,
               lastName: 1,
               profilePhoto: 1,
+              clerkId: 1,
             },
           },
         ],

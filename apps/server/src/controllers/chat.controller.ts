@@ -194,7 +194,7 @@ const createAGroupChat = asyncHandler(
   }
 );
 
-const getGroupChatDetails = asyncHandler(
+const getChatDetails = asyncHandler(
   async (req: RequireAuthProp<Request>, res: Response) => {
     const { chatId } = req.params;
 
@@ -202,23 +202,18 @@ const getGroupChatDetails = asyncHandler(
       {
         $match: {
           _id: new mongoose.Types.ObjectId(chatId),
-          isGroupChat: true,
         },
       },
       ...chatCommonAggregation(),
     ]);
 
-    const groupChat = chat[0];
-
-    if (!groupChat) {
-      throw new ApiError(404, "Group chat does not exist!");
+    if (!chat.length) {
+      throw new ApiError(404, "Chat does not exist!");
     }
 
     return res
       .status(200)
-      .json(
-        new ApiResponse(200, groupChat, "Group chat fetched successfully!")
-      );
+      .json(new ApiResponse(200, chat[0], "Chat fetched successfully!"));
   }
 );
 
@@ -253,6 +248,6 @@ const getAllChats = asyncHandler(
 export {
   createOrGetAOneOnOneChat,
   createAGroupChat,
-  getGroupChatDetails,
+  getChatDetails,
   getAllChats,
 };

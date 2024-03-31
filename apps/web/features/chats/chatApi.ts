@@ -16,6 +16,20 @@ export const useGetAllChats = () => {
   });
 };
 
+export const useGetChatById = (chatId: string) => {
+  return useQuery({
+    queryKey: ["chats", chatId],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get(`/chats/c/${chatId}`);
+        return res.data;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+  });
+};
+
 export const useCreateOrGetAOneOnOneChat = (receiverId: string) => {
   const queryClient = useQueryClient();
 

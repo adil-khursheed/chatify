@@ -12,8 +12,7 @@ export default function ChatsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { socket } = useSocket();
-  const [isConnected, setIsConnected] = useState(false);
+  const { socket, setIsConnected } = useSocket();
 
   const { data: chats, isLoading: chatsLoading } = useGetAllChats();
 
@@ -29,12 +28,11 @@ export default function ChatsLayout({
     if (!socket) return;
 
     socket.on(ChatEventEnum.CONNECTED_EVENT, onConnect);
-    console.log(isConnected);
 
     return () => {
       socket.off(ChatEventEnum.DISCONNECT_EVENT, onDisconnect);
     };
-  }, [socket]);
+  }, [socket, chats?.data]);
   return (
     <Sidebar>
       <div className="h-full">

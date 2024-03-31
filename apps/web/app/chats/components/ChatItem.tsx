@@ -14,7 +14,7 @@ const ChatItem: React.FC<{ chat: IChatItem }> = ({ chat }) => {
 
   const handleChatClick = useCallback(() => {
     router.push(`/chats/${chat._id}`);
-  }, [chat._id]);
+  }, [chat, router]);
 
   return (
     <div

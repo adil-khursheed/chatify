@@ -28,20 +28,26 @@ const getSocket = async () => {
 
 const SocketContext = createContext<{
   socket: ReturnType<typeof io> | null;
+  isConnected: boolean;
+  setIsConnected: (connected: boolean) => void;
 }>({
   socket: null,
+  isConnected: false,
+  setIsConnected() {},
 });
 
 export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<ReturnType<typeof io> | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const initializeSocket = async () => {
       try {
         const newSocket = await getSocket();
         setSocket(newSocket);
+        setIsConnected(true);
       } catch (error) {
         console.log("Error initializing socket: ", error);
       }
@@ -52,11 +58,13 @@ export const SocketProvider: FC<SocketProviderProps> = ({ children }) => {
     return () => {
       if (socket) {
         socket.disconnect();
+        setSocket(null);
+        setIsConnected(false);
       }
     };
   }, []);
   return (
-    <SocketContext.Provider value={{ socket }}>
+    <SocketContext.Provider value={{ socket, isConnected, setIsConnected }}>
       {children}
     </SocketContext.Provider>
   );

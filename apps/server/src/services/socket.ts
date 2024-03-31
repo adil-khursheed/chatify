@@ -7,6 +7,7 @@ import { ApiError } from "../utils/ApiError";
 import { User } from "../models/user.model";
 import { TUser } from "../types";
 import { ChatEventEnum } from "../constants";
+import { clients } from "@clerk/clerk-sdk-node";
 
 const pub = new Redis({
   host: conf.redisHost,
@@ -83,10 +84,7 @@ class SocketService {
           throw new ApiError(401, "Unauthorized handshake. Token is missing!");
         }
 
-        let decodedToken;
-        if (token) {
-          decodedToken = jwt.verify(token, publicKey);
-        }
+        const decodedToken = jwt.verify(token, publicKey);
 
         const user = await User.findOne({ clerkId: decodedToken?.sub });
         if (!user) {
